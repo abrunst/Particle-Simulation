@@ -1,0 +1,40 @@
+﻿<Window x:Class="Particle_Simulation.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Particle_Simulation"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded" Background="White" Foreground="Black">
+    <Grid>
+        <TabControl HorizontalContentAlignment="Center" VerticalAlignment="Top" Height="152" Panel.ZIndex="5">
+            <TabItem Header="Home">
+                <Grid Background="#FFE5E5E5" Margin="-2,0,0,-2">
+                    <GroupBox Header="Click Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="179">
+                        <Grid HorizontalAlignment="Left" Height="105" VerticalAlignment="Top" Width="169" Margin="0,0,-2,-1">
+                            <Label Content="On Click:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25"/>
+                            <ComboBox x:Name="onClickComboBox" HorizontalAlignment="Left" Height="23" Margin="0,25,0,0" VerticalAlignment="Top" Width="89">
+                                <ComboBoxItem IsSelected="True">Click</ComboBoxItem>
+                                <ComboBoxItem>Create Particle</ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Particle Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="179" Margin="184,0,0,0">
+                        <Grid HorizontalAlignment="Left" Height="105" VerticalAlignment="Top" Width="169" Margin="0,0,-2,-1">
+                            <Label Content="Radius:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25"/>
+                            <xctk:IntegerUpDown x:Name="radiusIUD" Canvas.Left="121" Canvas.Top="60" Margin="0,25,99,55" Value="50"/>
+                            <Label Content="Colour:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Margin="0,52,0,0"/>
+
+                            <xctk:ColorPicker x:Name="colorPicker" Canvas.Left="190" Canvas.Top="60" Margin="0,77,78,3" SelectedColor="Black" SelectedColorChanged="ColorPicker_SelectedColorChanged" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="TabItem">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+        </TabControl>
+        <Canvas x:Name="drawingArea" Margin="0,154,0,0" MouseDown="DrawingArea_MouseDown" Background="White"/>
+    </Grid>
+</Window>
