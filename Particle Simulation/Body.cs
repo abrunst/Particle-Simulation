@@ -5,21 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Input;
-using System.Windows.Shapes;
-using System.Windows.Controls;
 
 namespace Particle_Simulation
 {
-	/// <summary>
-	/// A Particle
-	/// </summary>
-	class ParticleView
+	class Body
 	{
+		/// <summary>
+		/// The mass of the particle
+		/// </summary>
+		private float mass;
 
 		/// <summary>
-		/// Property for radius of the particleview
+		/// Property for the mass of the particle
 		/// </summary>
+		public float Mass { get { return mass; } set { mass = value; } }
+
+		
 		public double Radius { get { return ellipseGeometry.RadiusY; } set { ellipseGeometry.RadiusX = value; ellipseGeometry.RadiusY = value; } }
 
 		/// <summary>
@@ -37,14 +38,15 @@ namespace Particle_Simulation
 		/// </summary>
 		/// <param name="radius">Radius of the particle</param>
 		/// <param name="coordinates">Coordinates of the particle</param>
-		public ParticleView(Point coordinates, double radius)
+		public Body(Point coordinates, double radius)
 		{
 			Coordinates = coordinates;
 			Radius = radius;
+			Mass = 62;
 		}
 
 		/// <summary>
-		/// Calculates the distance a x,y coordinate is from the edge of the ParticleView
+		/// Calculates the distance a x,y coordinate is from the edge of the MovingBody
 		/// </summary>
 		/// <param name="otherX">The other x coordinate </param>
 		/// <param name="otherY">The other y coordinate </param>
@@ -57,7 +59,7 @@ namespace Particle_Simulation
 		}
 
 		/// <summary>
-		/// Determines if a x,y coordinate is inside the ParticleView
+		/// Determines if a x,y coordinate is inside the MovingBody
 		/// </summary>
 		/// <param name="otherX">The other x coordinate</param>
 		/// <param name="otherY">The other y coordinate</param>
@@ -81,6 +83,7 @@ namespace Particle_Simulation
 		{
 			geometryGroup.Children.Add(ellipseGeometry);
 		}
-
 	}
+	
+
 }

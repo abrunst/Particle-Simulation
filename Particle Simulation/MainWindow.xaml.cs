@@ -13,11 +13,27 @@ namespace Particle_Simulation
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		private GeometryGroup geometryGroup = new GeometryGroup();
+		private GeometryGroup bodyGroup = new GeometryGroup();
 
-		private Path path = new Path();
+		private GeometryGroup movingBodyGroup = new GeometryGroup();
 
-		private List<ParticleView> particles = new List<ParticleView>();
+		private Path bodyPath = new Path();
+
+		private Path movingBodyPath = new Path();
+
+		private List<Body> bodies = new List<Body>();
+
+		private List<MovingBody> movingBodies = new List<MovingBody>();
+
+		private List<Body> allBodies = new List<Body>();
+
+		private double earthRadius = 6.38e+6;
+
+		private double earthMass = 5.972e+24;
+
+		private double gravitationalConstant = 6.674e-11;
+
+		private Body dragging;
 
 		/// <summary>
 		/// The time of the last render
@@ -43,12 +59,21 @@ namespace Particle_Simulation
 		//Sets the default values for fields and properties
 		public void SetDefaults()
 		{
-			geometryGroup.FillRule = FillRule.Nonzero;
+			bodyGroup.FillRule = FillRule.Nonzero;
+			movingBodyGroup.FillRule = FillRule.Nonzero;
 
-			drawingArea.Children.Add(path);
+			drawingArea.Children.Add(bodyPath);
+			drawingArea.Children.Add(movingBodyPath);
 
-			path.Data = geometryGroup;
-			path.Fill = new SolidColorBrush(colorPicker.SelectedColor.Value);
+			bodyPath.Data = bodyGroup;
+			bodyPath.Fill = new SolidColorBrush(Color.FromArgb(150,105,105,105));
+			bodyPath.Stroke = new SolidColorBrush(Color.FromArgb(150, 0, 0, 0));
+			bodyPath.StrokeThickness = 4;
+
+			movingBodyPath.Data = movingBodyGroup;
+			movingBodyPath.Fill = new SolidColorBrush(Color.FromArgb(150, 192, 192, 192));
+			movingBodyPath.Stroke = new SolidColorBrush(Color.FromArgb(150, 0, 0, 0));
+			movingBodyPath.StrokeThickness = 4;
 
 			//Setting the size of the window to 80% of the screen
 			this.Height = (System.Windows.SystemParameters.FullPrimaryScreenHeight * 0.80);
@@ -58,17 +83,32 @@ namespace Particle_Simulation
 			lastRender = TimeSpan.FromTicks(DateTime.Now.Ticks);
 
 
-			CompositionTarget.Rendering += CompositioinTarget_Rendering;
+			CompositionTarget.Rendering += CompositionTarget_Rendering;
 			//AddParticle(50, new Point(250, 250), Color.FromArgb(255, 200, 73, 92));
 		}
 
-		private void CompositioinTarget_Rendering(object sender, EventArgs e)
+		private void CompositionTarget_Rendering(object sender, EventArgs e)
 		{
 			//Casting to RenderingEventArgs to get the rendering time
 			RenderingEventArgs renderArgs = (RenderingEventArgs)e;
 
 			//Gets the time until next render
 			timeUntilRender = (renderArgs.RenderingTime - lastRender).TotalSeconds;
+			lastRender = renderArgs.RenderingTime;
+
+			//Applies the force of each Body to each movingBody
+			foreach(MovingBody movingBody in movingBodies)
+			{
+				foreach(Body body in bodies)
+				{
+					movingBody.ApplyForce(body);
+				}
+			}
+
+			if (dragging != null)
+			{
+				dragging.Coordinates = Mouse.GetPosition(drawingArea);
+			}
 		}
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -82,15 +122,15 @@ namespace Particle_Simulation
 		/// <param name="e"></param>
 		private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
 		{
-			path.Fill = new SolidColorBrush(e.NewValue.Value);
+			//Not yet implemented
 		}
 
 		/// <summary>
-		/// On MouseDown event in the PictureBox, adds a new Particle to particles and refershes the drawingPanel
+		/// On MouseLeftButtonDown in the drawingArea, decides what to do based on the selection in onClickComboBox
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e">The mouse event that triggered the handler</param>
-		private void DrawingArea_MouseDown(object sender, MouseButtonEventArgs e)
+		private void DrawingArea_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
 			if (onClickComboBox.SelectedIndex == 0)
 			{
@@ -102,20 +142,38 @@ namespace Particle_Simulation
 				float radius = (float)radiusIUD.Value;
 				Point coordinates = e.GetPosition(drawingArea);
 
-				AddParticle(radius, coordinates);
+				AddBody(radius, coordinates);
+			}
+			else if (onClickComboBox.SelectedIndex == 2)
+			{
+				Console.WriteLine(e.GetPosition(drawingArea));
+				float radius = (float)radiusIUD.Value;
+				Point coordinates = e.GetPosition(drawingArea);
+
+				AddMovingBody(radius, coordinates);
+			}
+			else if (onClickComboBox.SelectedIndex == 3)
+			{
+				foreach (Body body in allBodies)
+				{
+					if (dragging is null && body.IsInside(e.GetPosition(drawingArea)))
+					{
+						dragging = body;
+					}
+				}
 			}
 		}
 
 		/// <summary>
-		/// Determines if a click is inside a particle and if it is, changes its colour to red
+		/// Determines if a click is inside a Body
 		/// </summary>
 		/// <param name="x">The x coordinate of the click</param>
 		/// <param name="y">The y coordinate of the click</param>
 		public void ClickedInside(Point coordinates)
 		{
-			foreach (ParticleView particle in particles)
+			foreach (MovingBody particle in bodies)
 			{
-				if (particle.IsInside(particle.Coordinates))
+				if (particle.IsInside(coordinates))
 				{
 
 				}
@@ -123,25 +181,58 @@ namespace Particle_Simulation
 		}
 
 		/// <summary>
-		/// Adds a particle to particles and draws it
+		/// Adds a Body to the geometryGroup
 		/// </summary>
 		/// <param name="radius">The radius of the particle</param>
 		/// <param name="coordinates">The cooridnates of the particle</param>
 		/// <param name="color">The color of the particle</param>
-		public void AddParticle(float radius, Point coordinates)
+		public void AddBody(float radius, Point coordinates)
 		{
-			ParticleView particle = new ParticleView(coordinates, radius);
-			particles.Add(particle);
+			Body body = new Body(coordinates, radius);
+			bodies.Add(body);
+			allBodies.Add(body);
 
-			particle.AddToDrawing(geometryGroup);
-
-			
+			body.AddToDrawing(bodyGroup);
 		}
 
-		public void Animation()
+		/// <summary>
+		/// Adds a MovingBody to the GeometryGroup
+		/// </summary>
+		/// <param name="radius">The radius of the particle</param>
+		/// <param name="coordinates">The cooridnates of the particle</param>
+		public void AddMovingBody(float radius, Point coordinates)
 		{
+			MovingBody movingBody = new MovingBody(coordinates, radius);
+			movingBodies.Add(movingBody);
+			allBodies.Add(movingBody);
+
+			movingBody.AddToDrawing(movingBodyGroup);
 		}
 
-		
+		/// <summary>
+		/// Applies gravity to the MovingBody
+		/// </summary>
+		/// <param name="particle"></param>
+		private void Gravity(MovingBody particle)
+		{
+			double height = drawingArea.ActualHeight - particle.Coordinates.Y - particle.Radius + earthRadius;
+			particle.Force = Vector.Add(particle.Force, new Vector(0,  ((gravitationalConstant * earthMass) / (height * height))));
+			particle.Acceleration = Vector.Divide(particle.Force, particle.Mass);
+			particle.Velocity = Vector.Add(particle.Velocity, Vector.Multiply(particle.Acceleration, timeUntilRender));
+		}
+
+		private void MoveParticle(MovingBody particle)
+		{
+			particle.Coordinates = Vector.Add(particle.Velocity, particle.Coordinates);
+			Console.WriteLine(Vector.Add(particle.Velocity, particle.Coordinates));
+		}
+
+		private void DrawingArea_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+		{
+			if (dragging != null)
+			{
+				dragging = null;
+			}
+		}
 	}
 }
