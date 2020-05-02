@@ -13,12 +13,12 @@ namespace Particle_Simulation
 		/// <summary>
 		/// The mass of the particle
 		/// </summary>
-		private float mass;
+		private double mass;
 
 		/// <summary>
 		/// Property for the mass of the particle
 		/// </summary>
-		public float Mass { get { return mass; } set { mass = value; } }
+		public double Mass { get { return mass; } set { mass = value; } }
 
 		
 		public double Radius { get { return ellipseGeometry.RadiusY; } set { ellipseGeometry.RadiusX = value; ellipseGeometry.RadiusY = value; } }

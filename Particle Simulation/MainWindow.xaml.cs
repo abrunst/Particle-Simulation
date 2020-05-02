@@ -29,9 +29,9 @@ namespace Particle_Simulation
 
 		private double earthRadius = 6.38e+6;
 
-		private double earthMass = 5.972e+24;
+		private const double earthMass = 5.972e+24;
 
-		private double gravitationalConstant = 6.674e-11;
+		private const double gravitationalConstant = 6.674e-11;
 
 		private Body dragging;
 
@@ -101,10 +101,12 @@ namespace Particle_Simulation
 			{
 				foreach(Body body in bodies)
 				{
-					movingBody.ApplyForce(body);
+					movingBody.eulerPosition(body, timeUntilRender);
+					
 				}
 			}
 
+			//If a Body is being dragged, update its coordinates
 			if (dragging != null)
 			{
 				dragging.Coordinates = Mouse.GetPosition(drawingArea);
@@ -171,9 +173,9 @@ namespace Particle_Simulation
 		/// <param name="y">The y coordinate of the click</param>
 		public void ClickedInside(Point coordinates)
 		{
-			foreach (MovingBody particle in bodies)
+			foreach (Body body in bodies)
 			{
-				if (particle.IsInside(coordinates))
+				if (body.IsInside(coordinates))
 				{
 
 				}

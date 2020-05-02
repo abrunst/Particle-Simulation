@@ -17,6 +17,8 @@ namespace Particle_Simulation
 	class MovingBody : Body
 	{
 
+		private const double gravitationalConstant = 6.674e-11;
+
 		/// <summary>
 		/// The force on the particle
 		/// </summary>
@@ -64,14 +66,57 @@ namespace Particle_Simulation
 			Mass = 62;
 		}
 
-		public void ApplyForce(Body body)
-		{
-			Vector vector = Point.Subtract(body.Coordinates, Coordinates);
-			vector.Normalize();
-			Acceleration = vector;
-			Velocity = Vector.Add(velocity, Acceleration);
-			Coordinates = Vector.Add(Velocity, Coordinates);
 
+		/// <summary>
+		/// Applies the force from the Body on the movingBody
+		/// </summary>
+		/// <param name="body">The Body that is applying the force</param>
+		public void forceFromBody(Body body, double timeUntilRender)
+		{
+			//Vector vector = Point.Subtract(body.Coordinates, Coordinates);
+			//vector.Normalize();
+
+			//Multiplying the normalized acceleration by the acceleration due to gravity on the earths surface
+			//Acceleration = Vector.Multiply(vector, 9.81);
+
+			//Integrating Acceleration
+			Acceleration = Vector.Multiply(Acceleration, timeUntilRender);
+			//Acceleration = vector;
+
+			//Adding the Acceleration to the Velocity
+			Velocity = Vector.Add(Velocity, Acceleration);
+
+			//Integrating Velocity
+			Velocity = Vector.Multiply(Velocity, timeUntilRender);
+		}
+
+		public void applyVelocity(double timeUntilRender)
+		{
+
+			Console.WriteLine(Coordinates);
+			Coordinates = Vector.Add(Velocity, Coordinates);
+			
+		}
+
+		/// <summary>
+		/// An implementation of Eulers method to update the position and account for lag
+		/// </summary>
+		/// <param name="body"></param>
+		/// <param name="dt"></param>
+		public void eulerPosition(Body body, double dt)
+		{
+			//Update the Coordinates, integrategrating the Velocity
+			Coordinates = Vector.Add(Vector.Multiply(Velocity, dt), Coordinates);
+
+			//Normalizing a Vector of the distance between the movingBody and the Body
+			Vector unitVector = Point.Subtract(body.Coordinates, Coordinates);
+			unitVector.Normalize();
+
+			//Calculating the acceleration with the unitVector
+			Acceleration = Vector.Multiply(1000, unitVector);
+
+			//Update the Velocity, integrating the Acceleration
+			Velocity = Vector.Add(Velocity, Vector.Multiply(Acceleration, dt));
 		}
 
 	}
