@@ -10,4 +10,4 @@ Euler:
  - Error per step is is proportional to step-size (dt) squared
  
 Velocity Verlet:
- - Much less error
+ - Less error, provides counter-error
