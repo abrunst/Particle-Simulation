@@ -21,12 +21,25 @@ namespace Particle_Simulation
 		public double Mass { get { return mass; } set { mass = value; } }
 
 		
+		/// <summary>
+		/// Property for the radius of the Body
+		/// </summary>
 		public double Radius { get { return ellipseGeometry.RadiusY; } set { ellipseGeometry.RadiusX = value; ellipseGeometry.RadiusY = value; } }
 
 		/// <summary>
 		/// Property for the x,y coordinates of the centre of the Particleview
 		/// </summary>
 		public Point Coordinates { get { return ellipseGeometry.Center; } set { ellipseGeometry.Center = value; } }
+
+		/// <summary>
+		/// The previous coordinates
+		/// </summary>
+		private Point oldCoordinates;
+
+		/// <summary>
+		/// The property for the prevous coordinates
+		/// </summary>
+		public Point OldCoordinates { get { return oldCoordinates; } set { oldCoordinates = value; } }
 
 		/// <summary>
 		/// EllipseGeometry for the particleview
@@ -42,7 +55,7 @@ namespace Particle_Simulation
 		{
 			Coordinates = coordinates;
 			Radius = radius;
-			Mass = 62;
+			Mass = 99999999999;
 		}
 
 		/// <summary>

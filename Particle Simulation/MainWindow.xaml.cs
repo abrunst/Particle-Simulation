@@ -13,26 +13,59 @@ namespace Particle_Simulation
 	/// </summary>
 	public partial class MainWindow : Window
 	{
+		/// <summary>
+		/// The GeometryGroup for the Bodies
+		/// </summary>
 		private GeometryGroup bodyGroup = new GeometryGroup();
 
+		/// <summary>
+		/// The GeometryGroup for the movingBodies
+		/// </summary>
 		private GeometryGroup movingBodyGroup = new GeometryGroup();
 
+		/// <summary>
+		/// The path for the Bodies
+		/// </summary>
 		private Path bodyPath = new Path();
 
+		/// <summary>
+		/// The Path for the movingBodies
+		/// </summary>
 		private Path movingBodyPath = new Path();
 
+		/// <summary>
+		/// List of all the Bodies, not including movingBodies
+		/// </summary>
 		private List<Body> bodies = new List<Body>();
 
+		/// <summary>
+		/// List of all the movingBodies
+		/// </summary>
 		private List<MovingBody> movingBodies = new List<MovingBody>();
 
+		/// <summary>
+		/// List of all the Bodies and movingBodies
+		/// </summary>
 		private List<Body> allBodies = new List<Body>();
 
+		/// <summary>
+		/// The radius of the earth
+		/// </summary>
 		private double earthRadius = 6.38e+6;
 
+		/// <summary>
+		/// The mass of the earth
+		/// </summary>
 		private const double earthMass = 5.972e+24;
 
+		/// <summary>
+		/// The gravitational constant
+		/// </summary>
 		private const double gravitationalConstant = 6.674e-11;
 
+		/// <summary>
+		/// The Body that is being dragged, else null
+		/// </summary>
 		private Body dragging;
 
 		/// <summary>
@@ -41,15 +74,15 @@ namespace Particle_Simulation
 		private TimeSpan lastRender;
 
 		/// <summary>
-		/// 
-		/// </summary>
-		private double time = 0;
-
-		/// <summary>
 		/// The time until the next render
 		/// </summary>
 		private double timeUntilRender = 0;
 
+		private VisualCollection visualCollection;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -69,11 +102,15 @@ namespace Particle_Simulation
 			bodyPath.Fill = new SolidColorBrush(Color.FromArgb(150,105,105,105));
 			bodyPath.Stroke = new SolidColorBrush(Color.FromArgb(150, 0, 0, 0));
 			bodyPath.StrokeThickness = 4;
+			bodyPath.Fill.Freeze();
+			bodyPath.Stroke.Freeze();
 
 			movingBodyPath.Data = movingBodyGroup;
 			movingBodyPath.Fill = new SolidColorBrush(Color.FromArgb(150, 192, 192, 192));
 			movingBodyPath.Stroke = new SolidColorBrush(Color.FromArgb(150, 0, 0, 0));
 			movingBodyPath.StrokeThickness = 4;
+			movingBodyPath.Fill.Freeze();
+			movingBodyPath.Stroke.Freeze();
 
 			//Setting the size of the window to 80% of the screen
 			this.Height = (System.Windows.SystemParameters.FullPrimaryScreenHeight * 0.80);
@@ -87,6 +124,12 @@ namespace Particle_Simulation
 			//AddParticle(50, new Point(250, 250), Color.FromArgb(255, 200, 73, 92));
 		}
 
+		/// <summary>
+		/// Handler for the rendering event
+		/// Updates the positions of the Bodies
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		private void CompositionTarget_Rendering(object sender, EventArgs e)
 		{
 			//Casting to RenderingEventArgs to get the rendering time
@@ -96,13 +139,16 @@ namespace Particle_Simulation
 			timeUntilRender = (renderArgs.RenderingTime - lastRender).TotalSeconds;
 			lastRender = renderArgs.RenderingTime;
 
-			//Applies the force of each Body to each movingBody
+			//Applies the force of each Body to each movingBody if it is not being dragged
 			foreach(MovingBody movingBody in movingBodies)
 			{
-				foreach(Body body in bodies)
+				if (movingBody != dragging)
 				{
-					movingBody.eulerPosition(body, timeUntilRender);
-					
+					foreach (Body body in bodies)
+					{
+						movingBody.VelocityVerlet(body, timeUntilRender);
+
+					}
 				}
 			}
 
@@ -111,10 +157,6 @@ namespace Particle_Simulation
 			{
 				dragging.Coordinates = Mouse.GetPosition(drawingArea);
 			}
-		}
-
-		private void Window_Loaded(object sender, RoutedEventArgs e)
-		{
 		}
 
 		/// <summary>
@@ -161,6 +203,11 @@ namespace Particle_Simulation
 					if (dragging is null && body.IsInside(e.GetPosition(drawingArea)))
 					{
 						dragging = body;
+						if (dragging is MovingBody)
+						{
+							((MovingBody)dragging).Velocity = new Vector();
+						}
+						
 					}
 				}
 			}
@@ -223,18 +270,32 @@ namespace Particle_Simulation
 			particle.Velocity = Vector.Add(particle.Velocity, Vector.Multiply(particle.Acceleration, timeUntilRender));
 		}
 
-		private void MoveParticle(MovingBody particle)
-		{
-			particle.Coordinates = Vector.Add(particle.Velocity, particle.Coordinates);
-			Console.WriteLine(Vector.Add(particle.Velocity, particle.Coordinates));
-		}
-
+		/// <summary>
+		/// Handler for the left mouse button being released
+		/// Sets draggin to null if it is not already
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		private void DrawingArea_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
 			if (dragging != null)
 			{
 				dragging = null;
 			}
+		}
+
+		/// <summary>
+		/// Handler for a click on the clearButton
+		/// On click, clears the Bodies in bodyGroup and the movingBodies in movingBodyGroup
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ClearButton_Click(object sender, RoutedEventArgs e)
+		{
+			bodyGroup.Children.Clear();
+			movingBodyGroup.Children.Clear();
+			bodies = new List<Body>();
+			movingBodies = new List<MovingBody>();
 		}
 	}
 }
