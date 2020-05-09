@@ -3,7 +3,6 @@ WPF Particle Simulation
 
 Ways of implementing motion:
  - Euler
-  - a
  - Velocity Verlet
 
 Euler:
