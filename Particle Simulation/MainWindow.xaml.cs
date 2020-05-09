@@ -78,8 +78,6 @@ namespace Particle_Simulation
 		/// </summary>
 		private double timeUntilRender = 0;
 
-		private VisualCollection visualCollection;
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -89,7 +87,9 @@ namespace Particle_Simulation
 			SetDefaults();
 		}
 
-		//Sets the default values for fields and properties
+		/// <summary>
+		/// Sets the default values for fields and properties
+		/// </summary>
 		public void SetDefaults()
 		{
 			bodyGroup.FillRule = FillRule.Nonzero;
@@ -98,15 +98,19 @@ namespace Particle_Simulation
 			drawingArea.Children.Add(bodyPath);
 			drawingArea.Children.Add(movingBodyPath);
 
+			bodyColorPicker.SelectedColor = Color.FromArgb(200, 105, 105, 105);
+			movingBodyColorPicker.SelectedColor = Color.FromArgb(100, 192, 192, 192);
+
+
 			bodyPath.Data = bodyGroup;
-			bodyPath.Fill = new SolidColorBrush(Color.FromArgb(150,105,105,105));
+			bodyPath.Fill = new SolidColorBrush(bodyColorPicker.SelectedColor.Value);
 			bodyPath.Stroke = new SolidColorBrush(Color.FromArgb(150, 0, 0, 0));
 			bodyPath.StrokeThickness = 4;
 			bodyPath.Fill.Freeze();
 			bodyPath.Stroke.Freeze();
 
 			movingBodyPath.Data = movingBodyGroup;
-			movingBodyPath.Fill = new SolidColorBrush(Color.FromArgb(150, 192, 192, 192));
+			movingBodyPath.Fill = new SolidColorBrush(movingBodyColorPicker.SelectedColor.Value);
 			movingBodyPath.Stroke = new SolidColorBrush(Color.FromArgb(150, 0, 0, 0));
 			movingBodyPath.StrokeThickness = 4;
 			movingBodyPath.Fill.Freeze();
@@ -132,6 +136,7 @@ namespace Particle_Simulation
 		/// <param name="e"></param>
 		private void CompositionTarget_Rendering(object sender, EventArgs e)
 		{
+			Console.WriteLine(bodies.Count);
 			//Casting to RenderingEventArgs to get the rendering time
 			RenderingEventArgs renderArgs = (RenderingEventArgs)e;
 
@@ -140,18 +145,69 @@ namespace Particle_Simulation
 			lastRender = renderArgs.RenderingTime;
 
 			//Applies the force of each Body to each movingBody if it is not being dragged
-			foreach(MovingBody movingBody in movingBodies)
+			if (movementMethodComboBox.SelectedValue.ToString() == "Velocity Verlet")
 			{
-				if (movingBody != dragging)
+				foreach (MovingBody movingBody in movingBodies)
 				{
-					foreach (Body body in bodies)
+					if (movingBody != dragging)
 					{
-						movingBody.VelocityVerlet(body, timeUntilRender);
-
+						foreach (Body body in allBodies)
+						{
+							if (movingBody != body) {
+								movingBody.VerletUpdateInitialVelocity(body, timeUntilRender);
+								movingBody.UpdateCoordinates(timeUntilRender);
+							}
+						}
 					}
 				}
-			}
 
+				foreach (MovingBody movingBody in movingBodies)
+				{
+					if (movingBody != dragging)
+					{
+						foreach (Body body in allBodies)
+						{
+							if (movingBody != body)
+							{
+								movingBody.VerletUpdateFinalVelocity(body, timeUntilRender);
+								movingBody.UpdatePreviousCoordinates();
+							}
+						}
+					}
+				}
+
+			} else if (movementMethodComboBox.SelectedValue.ToString() == "Euler")
+			{
+				foreach (MovingBody movingBody in movingBodies)
+				{
+					if (movingBody != dragging)
+					{
+						foreach (Body body in allBodies)
+						{
+							if (movingBody != body)
+							{
+								movingBody.EulerUpdateVelocity(body, timeUntilRender);
+								movingBody.UpdateCoordinates(timeUntilRender);
+							}
+						}
+					}
+				}
+
+				foreach (MovingBody movingBody in movingBodies)
+				{
+					if (movingBody != dragging)
+					{
+						foreach (Body body in allBodies)
+						{
+							if (movingBody != body)
+							{
+								movingBody.UpdatePreviousCoordinates();
+							}
+						}
+					}
+				}
+
+			}
 			//If a Body is being dragged, update its coordinates
 			if (dragging != null)
 			{
@@ -159,15 +215,6 @@ namespace Particle_Simulation
 			}
 		}
 
-		/// <summary>
-		/// When the selected color is changed in the colorPicker, change the fill of the path
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
-		{
-			//Not yet implemented
-		}
 
 		/// <summary>
 		/// On MouseLeftButtonDown in the drawingArea, decides what to do based on the selection in onClickComboBox
@@ -176,11 +223,11 @@ namespace Particle_Simulation
 		/// <param name="e">The mouse event that triggered the handler</param>
 		private void DrawingArea_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			if (onClickComboBox.SelectedIndex == 0)
+			if (onClickComboBox.SelectedItem.ToString() == "Click")
 			{
 				ClickedInside(e.GetPosition(drawingArea));
 			}
-			else if (onClickComboBox.SelectedIndex == 1)
+			else if (onClickComboBox.SelectedValue.ToString() == "Create Static Body")
 			{
 				Console.WriteLine(e.GetPosition(drawingArea));
 				float radius = (float)radiusIUD.Value;
@@ -188,7 +235,7 @@ namespace Particle_Simulation
 
 				AddBody(radius, coordinates);
 			}
-			else if (onClickComboBox.SelectedIndex == 2)
+			else if (onClickComboBox.SelectedValue.ToString() == "Create Moving Body" )
 			{
 				Console.WriteLine(e.GetPosition(drawingArea));
 				float radius = (float)radiusIUD.Value;
@@ -196,7 +243,7 @@ namespace Particle_Simulation
 
 				AddMovingBody(radius, coordinates);
 			}
-			else if (onClickComboBox.SelectedIndex == 3)
+			else if (onClickComboBox.SelectedValue.ToString() == "Drag Body")
 			{
 				foreach (Body body in allBodies)
 				{
@@ -296,6 +343,29 @@ namespace Particle_Simulation
 			movingBodyGroup.Children.Clear();
 			bodies = new List<Body>();
 			movingBodies = new List<MovingBody>();
+			allBodies = new List<Body>();
+		}
+
+		/// <summary>
+		/// Event handler for the selectedColor changed in bodyColorPicker
+		/// Changes the bodyPath fill to the new colour
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void BodyColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+		{
+			bodyPath.Fill = new SolidColorBrush(e.NewValue.Value);
+		}
+
+		/// <summary>
+		/// Event handler for the selectedColor changed in movingBodyColorPicker
+		/// Changes the movingBodyPath fill to the new colour
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void MovingBodyColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+		{
+			movingBodyPath.Fill = new SolidColorBrush(e.NewValue.Value);
 		}
 	}
 }

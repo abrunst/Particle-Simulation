@@ -32,14 +32,14 @@ namespace Particle_Simulation
 		public Point Coordinates { get { return ellipseGeometry.Center; } set { ellipseGeometry.Center = value; } }
 
 		/// <summary>
-		/// The previous coordinates
+		/// The previous coordinates of the movingBody
 		/// </summary>
-		private Point oldCoordinates;
+		private Point previousCoordinates;
 
 		/// <summary>
-		/// The property for the prevous coordinates
+		/// Property for the previous coordinates of the movingBody
 		/// </summary>
-		public Point OldCoordinates { get { return oldCoordinates; } set { oldCoordinates = value; } }
+		public Point PreviousCoordinates { get => previousCoordinates; set => previousCoordinates = value; }
 
 		/// <summary>
 		/// EllipseGeometry for the particleview
@@ -54,8 +54,9 @@ namespace Particle_Simulation
 		public Body(Point coordinates, double radius)
 		{
 			Coordinates = coordinates;
+			PreviousCoordinates = coordinates;
 			Radius = radius;
-			Mass = 99999999999;
+			Mass = 1000000000000;
 		}
 
 		/// <summary>

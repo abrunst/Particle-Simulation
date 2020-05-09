@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
-using System.Windows.Input;
-using System.Windows.Shapes;
-using System.Windows.Controls;
 
 namespace Particle_Simulation
 {
 	/// <summary>
-	/// A Particle
+	/// A Body that can move
 	/// </summary>
 	class MovingBody : Body
 	{
-
+		/// <summary>
+		/// The gravitational constant
+		/// </summary>
 		private const double gravitationalConstant = 6.674e-11;
 
 		/// <summary>
@@ -62,16 +56,16 @@ namespace Particle_Simulation
 		public MovingBody(Point coordinates, double radius) : base(coordinates, radius)
 		{
 			Coordinates = coordinates;
+			PreviousCoordinates = Coordinates;
 			Radius = radius;
-			Mass = 62;
+			Mass = 100000000000;
 		}
-
 
 		/// <summary>
 		/// An implementation of Eulers method to update the position and account for lag
 		/// Error per step is propertional to dt squared
 		/// </summary>
-		/// <param name="body"></param>
+		/// <param name="body">The body applying force to this MovingBody</param>
 		/// <param name="dt"></param>
 		public void Euler(Body body, double dt)
 		{
@@ -92,7 +86,7 @@ namespace Particle_Simulation
 		/// <summary>
 		/// Calculates the force due to gravity on the movingBody
 		/// </summary>
-		/// <param name="body"></param>
+		/// <param name="body">The body applying the force to this MovingBody</param>
 		public void CalculateForce(Body body)
 		{
 			Vector unitVector = Point.Subtract(body.Coordinates, Coordinates);
@@ -102,38 +96,78 @@ namespace Particle_Simulation
 		}
 
 		/// <summary>
-		/// Implementation of Velocity Verlet method
-		/// Accurate for a constant acceleration
+		/// Calculates the intial force for Verlocity Verlet
 		/// </summary>
-		/// <param name="body"></param>
-		/// <param name="dt"></param>
-		public void VelocityVerlet(Body body, double dt)
+		/// <param name="body">The body applying force to this MovingBody</param>
+		public void CalculateInitialForce(Body body)
 		{
-			//Normalizing a Vector of the distance between the movingBody and the Body
-			Vector unitVector = Point.Subtract(body.Coordinates, Coordinates);
+			Vector unitVector = Point.Subtract(body.PreviousCoordinates, Coordinates);
+			double distance = unitVector.Length;
 			unitVector.Normalize();
+			Force = Vector.Multiply((gravitationalConstant * Mass * body.Mass / distance * distance), unitVector);
+		}
 
-			//Calculating the acceleration with the unitVector
-			Acceleration = Vector.Multiply(500, unitVector);
+		/// <summary>
+		/// A Euler's implementation of updating the initial velocity
+		/// </summary>
+		/// <param name="body">The body applying force to this MovingBody</param>
+		/// <param name="dt">The change in time</param>
+		public void EulerUpdateVelocity(Body body, double dt)
+		{
+			//Calculating Acceleration
+			CalculateInitialForce(body);
+			Acceleration = Force / Mass;
 
 			//Updating Velocity
-			Velocity = Vector.Add(Velocity, Vector.Multiply(0.5 * dt * dt, Acceleration));
+			Velocity = Vector.Add(Velocity, Vector.Multiply(dt, Acceleration));
+		}
 
-			//Updating Coordinates
+		/// <summary>
+		/// Updates the MovingBody's coordinates
+		/// </summary>
+		/// <param name="dt">The change in time</param>
+		public void UpdateCoordinates(double dt)
+		{
+			PreviousCoordinates = Coordinates;
 			Coordinates = Vector.Add(Vector.Multiply(Velocity, dt), Coordinates);
+		}
 
-			//Updating Acceleration here if acceleration is not constant
-
-			//Updating Velocity
-			//Normalizing a Vector of the distance between the movingBody and the Body
-			unitVector = Point.Subtract(body.Coordinates, Coordinates);
-			unitVector.Normalize();
-
-			//Calculating the acceleration with the unitVector
-			Acceleration = Vector.Multiply(500, unitVector);
+		/// <summary>
+		/// A Velocity Verlet implementation of updating the initial velocity
+		/// </summary>
+		/// <param name="body">The body applying force to this MovingBody</param>
+		/// <param name="dt">The change in time</param>
+		public void VerletUpdateInitialVelocity(Body body, double dt)
+		{
+			//Calculating Acceleration
+			CalculateInitialForce(body);
+			Acceleration = Force / Mass;
 
 			//Updating Velocity
 			Velocity = Vector.Add(Velocity, Vector.Multiply(0.5 * dt, Acceleration));
+		}
+
+		/// <summary>
+		/// Updates the final verlocity for Verlocity Verlet
+		/// </summary>
+		/// <param name="body">The body applying force</param>
+		/// <param name="dt">The change in time</param>
+		public void VerletUpdateFinalVelocity(Body body, double dt)
+		{
+			//Calculating Acceleration
+			CalculateForce(body);
+			Acceleration = Force / Mass;
+
+			//Updating Velocity
+			Velocity = Vector.Add(Velocity, Vector.Multiply(0.5 * dt, Acceleration));
+		}
+
+		/// <summary>
+		/// Updates the previous coordinates to the current coordinates
+		/// </summary>
+		public void UpdatePreviousCoordinates()
+		{
+			PreviousCoordinates = Coordinates;
 		}
 	}
 }
