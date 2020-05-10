@@ -132,6 +132,8 @@ namespace Particle_Simulation
 			Coordinates = Vector.Add(Vector.Multiply(Velocity, dt), Coordinates);
 		}
 
+
+
 		/// <summary>
 		/// A Velocity Verlet implementation of updating the initial velocity
 		/// </summary>

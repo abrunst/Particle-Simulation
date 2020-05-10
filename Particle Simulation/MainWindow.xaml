@@ -22,10 +22,12 @@
                             </ComboBox>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Particle Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="179" Margin="184,0,0,0">
+                    <GroupBox Header="Static Body Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="179" Margin="184,0,0,0">
                         <Grid HorizontalAlignment="Left" Height="105" VerticalAlignment="Top" Width="169" Margin="0,0,-2,-1">
                             <Label Content="Radius:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25"/>
-                            <xctk:IntegerUpDown x:Name="radiusIUD" Canvas.Left="121" Canvas.Top="60" Margin="0,25,99,55" Value="50"/>
+                            <xctk:IntegerUpDown x:Name="staticBodyRadiusIUD" Canvas.Left="121" Canvas.Top="60" Margin="0,25,99,55" Value="50"/>
+                            <Label Content="Static Body Colour:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Margin="0,55,0,0" Width="112"/>
+                            <xctk:ColorPicker x:Name="bodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="0,80,57,4" SelectedColor="Black" SelectedColorChanged="BodyColorPicker_SelectedColorChanged"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Misc Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="179" Margin="552,0,0,0">
@@ -39,12 +41,12 @@
 
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Colour Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="179" Margin="368,0,0,0">
+                    <GroupBox Header="Moving Body Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="179" Margin="368,0,0,0">
                         <Grid HorizontalAlignment="Left" Height="126" Margin="0,0,-12,-22" VerticalAlignment="Top" Width="179">
-                            <Label Content="Static Body Colour:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Margin="10,0,0,0" Width="112"/>
-                            <xctk:ColorPicker x:Name="bodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="10,25,68,79" SelectedColor="Black" SelectedColorChanged="BodyColorPicker_SelectedColorChanged"/>
-                            <Label Content="Moving Body Colour:" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top"/>
-                            <xctk:ColorPicker x:Name="movingBodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="10,83,68,21" SelectedColor="Black" SelectedColorChanged="MovingBodyColorPicker_SelectedColorChanged"/>
+                            <Label Content="Radius:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25"/>
+                            <xctk:IntegerUpDown x:Name="movingBodyRadiusIUD" Canvas.Left="121" Canvas.Top="60" Margin="0,25,100,79" Value="20"/>
+                            <Label Content="Moving Body Colour:" HorizontalAlignment="Left" Margin="0,52,0,0" VerticalAlignment="Top"/>
+                            <xctk:ColorPicker x:Name="movingBodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="0,83,57,21" SelectedColor="Black" SelectedColorChanged="MovingBodyColorPicker_SelectedColorChanged"/>
                         </Grid>
                     </GroupBox>
 

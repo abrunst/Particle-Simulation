@@ -140,6 +140,13 @@ namespace Particle_Simulation
 			//Casting to RenderingEventArgs to get the rendering time
 			RenderingEventArgs renderArgs = (RenderingEventArgs)e;
 
+			//TESTING
+			foreach(Body body in allBodies)
+			{
+				Console.WriteLine(body.Coordinates);
+				Console.WriteLine(body.PreviousCoordinates);
+			}
+
 			//Gets the time until next render
 			timeUntilRender = (renderArgs.RenderingTime - lastRender).TotalSeconds;
 			lastRender = renderArgs.RenderingTime;
@@ -153,7 +160,7 @@ namespace Particle_Simulation
 					{
 						foreach (Body body in allBodies)
 						{
-							if (movingBody != body) {
+							if (movingBody != body)  {
 								movingBody.VerletUpdateInitialVelocity(body, timeUntilRender);
 								movingBody.UpdateCoordinates(timeUntilRender);
 							}
@@ -212,6 +219,7 @@ namespace Particle_Simulation
 			if (dragging != null)
 			{
 				dragging.Coordinates = Mouse.GetPosition(drawingArea);
+				dragging.PreviousCoordinates = dragging.Coordinates;
 			}
 		}
 
@@ -230,7 +238,7 @@ namespace Particle_Simulation
 			else if (onClickComboBox.SelectedValue.ToString() == "Create Static Body")
 			{
 				Console.WriteLine(e.GetPosition(drawingArea));
-				float radius = (float)radiusIUD.Value;
+				float radius = (float)staticBodyRadiusIUD.Value;
 				Point coordinates = e.GetPosition(drawingArea);
 
 				AddBody(radius, coordinates);
@@ -238,7 +246,7 @@ namespace Particle_Simulation
 			else if (onClickComboBox.SelectedValue.ToString() == "Create Moving Body" )
 			{
 				Console.WriteLine(e.GetPosition(drawingArea));
-				float radius = (float)radiusIUD.Value;
+				float radius = (float)movingBodyRadiusIUD.Value;
 				Point coordinates = e.GetPosition(drawingArea);
 
 				AddMovingBody(radius, coordinates);
