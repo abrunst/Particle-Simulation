@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,6 +19,10 @@ namespace Particle_Simulation
 		/// </summary>
 		private GeometryGroup bodyGroup = new GeometryGroup();
 
+		private Broadphase broadphase = new Broadphase();
+
+		private Narrowphase narrowphase = new Narrowphase();
+
 		/// <summary>
 		/// The GeometryGroup for the movingBodies
 		/// </summary>
@@ -34,19 +39,9 @@ namespace Particle_Simulation
 		private Path movingBodyPath = new Path();
 
 		/// <summary>
-		/// List of all the Bodies, not including movingBodies
-		/// </summary>
-		private List<Body> bodies = new List<Body>();
-
-		/// <summary>
-		/// List of all the movingBodies
-		/// </summary>
-		private List<MovingBody> movingBodies = new List<MovingBody>();
-
-		/// <summary>
 		/// List of all the Bodies and movingBodies
 		/// </summary>
-		private List<Body> allBodies = new List<Body>();
+		private List<Body> bodies = new List<Body>();
 
 		/// <summary>
 		/// The radius of the earth
@@ -76,7 +71,12 @@ namespace Particle_Simulation
 		/// <summary>
 		/// The time until the next render
 		/// </summary>
-		private double timeUntilRender = 0;
+		private double dt = 0;
+
+		/// <summary>
+		/// The currently selected ball
+		/// </summary>
+		private Body selectedBody;
 
 		/// <summary>
 		/// Constructor
@@ -88,7 +88,7 @@ namespace Particle_Simulation
 		}
 
 		/// <summary>
-		/// Sets the default values for fields and properties
+		/// Sets the default values for WPF elements
 		/// </summary>
 		public void SetDefaults()
 		{
@@ -125,7 +125,6 @@ namespace Particle_Simulation
 
 
 			CompositionTarget.Rendering += CompositionTarget_Rendering;
-			//AddParticle(50, new Point(250, 250), Color.FromArgb(255, 200, 73, 92));
 		}
 
 		/// <summary>
@@ -136,91 +135,44 @@ namespace Particle_Simulation
 		/// <param name="e"></param>
 		private void CompositionTarget_Rendering(object sender, EventArgs e)
 		{
-			Console.WriteLine(bodies.Count);
 			//Casting to RenderingEventArgs to get the rendering time
 			RenderingEventArgs renderArgs = (RenderingEventArgs)e;
 
-			//TESTING
-			foreach(Body body in allBodies)
-			{
-				Console.WriteLine(body.Coordinates);
-				Console.WriteLine(body.PreviousCoordinates);
-			}
-
 			//Gets the time until next render
-			timeUntilRender = (renderArgs.RenderingTime - lastRender).TotalSeconds;
+			dt = (renderArgs.RenderingTime - lastRender).TotalSeconds;
 			lastRender = renderArgs.RenderingTime;
 
-			//Applies the force of each Body to each movingBody if it is not being dragged
+			
+
+			
+
+			//Determine which numerical method to use to integrate motion
 			if (movementMethodComboBox.SelectedValue.ToString() == "Velocity Verlet")
 			{
-				foreach (MovingBody movingBody in movingBodies)
-				{
-					if (movingBody != dragging)
-					{
-						foreach (Body body in allBodies)
-						{
-							if (movingBody != body)  {
-								movingBody.VerletUpdateInitialVelocity(body, timeUntilRender);
-								movingBody.UpdateCoordinates(timeUntilRender);
-							}
-						}
-					}
-				}
-
-				foreach (MovingBody movingBody in movingBodies)
-				{
-					if (movingBody != dragging)
-					{
-						foreach (Body body in allBodies)
-						{
-							if (movingBody != body)
-							{
-								movingBody.VerletUpdateFinalVelocity(body, timeUntilRender);
-								movingBody.UpdatePreviousCoordinates();
-							}
-						}
-					}
-				}
-
-			} else if (movementMethodComboBox.SelectedValue.ToString() == "Euler")
-			{
-				foreach (MovingBody movingBody in movingBodies)
-				{
-					if (movingBody != dragging)
-					{
-						foreach (Body body in allBodies)
-						{
-							if (movingBody != body)
-							{
-								movingBody.EulerUpdateVelocity(body, timeUntilRender);
-								movingBody.UpdateCoordinates(timeUntilRender);
-							}
-						}
-					}
-				}
-
-				foreach (MovingBody movingBody in movingBodies)
-				{
-					if (movingBody != dragging)
-					{
-						foreach (Body body in allBodies)
-						{
-							if (movingBody != body)
-							{
-								movingBody.UpdatePreviousCoordinates();
-							}
-						}
-					}
-				}
-
+				VelocityVerlet();
 			}
-			//If a Body is being dragged, update its coordinates
+
+			
+			else if (movementMethodComboBox.SelectedValue.ToString() == "Euler")
+			{
+				Euler();
+			}
+
+			//If a Body is being dragged, update its coordinates to the current mouse coordinates
 			if (dragging != null)
 			{
-				dragging.Coordinates = Mouse.GetPosition(drawingArea);
-				dragging.PreviousCoordinates = dragging.Coordinates;
+				dragging.UpdateCoordinates(Mouse.GetPosition(drawingArea));
 			}
+
+			if (collisionCheckbox.IsChecked.Value)
+			{
+
+				List<List<Body>> bodiesTocheck = broadphase.SweepBodies(bodies);
+
+				narrowphase.FindColliding(bodiesTocheck);
+
+			}
+			UpdateSelected();
 		}
 
 
@@ -231,21 +183,25 @@ namespace Particle_Simulation
 		/// <param name="e">The mouse event that triggered the handler</param>
 		private void DrawingArea_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			if (onClickComboBox.SelectedItem.ToString() == "Click")
+			if (onClickComboBox.SelectedValue.ToString() == "Click")
 			{
-				ClickedInside(e.GetPosition(drawingArea));
+				foreach (Body body in bodies)
+				{
+					if (body.IsInside(e.GetPosition(drawingArea)))
+					{
+						selectedBody = body;
+					}
+				}
 			}
 			else if (onClickComboBox.SelectedValue.ToString() == "Create Static Body")
 			{
-				Console.WriteLine(e.GetPosition(drawingArea));
-				float radius = (float)staticBodyRadiusIUD.Value;
+				double radius = (double)staticBodyRadiusIUD.Value;
 				Point coordinates = e.GetPosition(drawingArea);
 
 				AddBody(radius, coordinates);
 			}
 			else if (onClickComboBox.SelectedValue.ToString() == "Create Moving Body" )
 			{
-				Console.WriteLine(e.GetPosition(drawingArea));
 				float radius = (float)movingBodyRadiusIUD.Value;
 				Point coordinates = e.GetPosition(drawingArea);
 
@@ -253,19 +209,21 @@ namespace Particle_Simulation
 			}
 			else if (onClickComboBox.SelectedValue.ToString() == "Drag Body")
 			{
-				foreach (Body body in allBodies)
+				foreach (Body body in bodies)
 				{
 					if (dragging is null && body.IsInside(e.GetPosition(drawingArea)))
 					{
 						dragging = body;
-						if (dragging is MovingBody)
+						if (dragging is Body)
 						{
-							((MovingBody)dragging).Velocity = new Vector();
+							dragging.Velocity.Normalize();
+							dragging.Velocity = Vector.Multiply(dragging.Velocity, 0);
 						}
 						
 					}
 				}
 			}
+			
 		}
 
 		/// <summary>
@@ -282,6 +240,7 @@ namespace Particle_Simulation
 
 				}
 			}
+			
 		}
 
 		/// <summary>
@@ -289,14 +248,12 @@ namespace Particle_Simulation
 		/// </summary>
 		/// <param name="radius">The radius of the particle</param>
 		/// <param name="coordinates">The cooridnates of the particle</param>
-		/// <param name="color">The color of the particle</param>
-		public void AddBody(float radius, Point coordinates)
+		public void AddBody(double radius, Point coordinates)
 		{
-			Body body = new Body(coordinates, radius);
-			bodies.Add(body);
-			allBodies.Add(body);
+			Body body = new Body(coordinates, radius, false);
 
 			body.AddToDrawing(bodyGroup);
+			broadphase.AddBodies(bodies, new List<Body> { body });
 		}
 
 		/// <summary>
@@ -306,23 +263,10 @@ namespace Particle_Simulation
 		/// <param name="coordinates">The cooridnates of the particle</param>
 		public void AddMovingBody(float radius, Point coordinates)
 		{
-			MovingBody movingBody = new MovingBody(coordinates, radius);
-			movingBodies.Add(movingBody);
-			allBodies.Add(movingBody);
+			Body body = new Body(coordinates, radius, true);
 
-			movingBody.AddToDrawing(movingBodyGroup);
-		}
-
-		/// <summary>
-		/// Applies gravity to the MovingBody
-		/// </summary>
-		/// <param name="particle"></param>
-		private void Gravity(MovingBody particle)
-		{
-			double height = drawingArea.ActualHeight - particle.Coordinates.Y - particle.Radius + earthRadius;
-			particle.Force = Vector.Add(particle.Force, new Vector(0,  ((gravitationalConstant * earthMass) / (height * height))));
-			particle.Acceleration = Vector.Divide(particle.Force, particle.Mass);
-			particle.Velocity = Vector.Add(particle.Velocity, Vector.Multiply(particle.Acceleration, timeUntilRender));
+			body.AddToDrawing(movingBodyGroup);
+			broadphase.AddBodies(bodies, new List<Body> { body });
 		}
 
 		/// <summary>
@@ -350,8 +294,6 @@ namespace Particle_Simulation
 			bodyGroup.Children.Clear();
 			movingBodyGroup.Children.Clear();
 			bodies = new List<Body>();
-			movingBodies = new List<MovingBody>();
-			allBodies = new List<Body>();
 		}
 
 		/// <summary>
@@ -374,6 +316,91 @@ namespace Particle_Simulation
 		private void MovingBodyColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
 		{
 			movingBodyPath.Fill = new SolidColorBrush(e.NewValue.Value);
+		}
+
+		/// <summary>
+		/// An implementation of the Verlocity Verlet method for integrating motion
+		/// </summary>
+		private void VelocityVerlet()
+		{
+			//For every movingbody that isn't being dragged, 
+			//go through all the bodies in allbodies,
+			//and update the movingBodys velocity and coordinates if the body is not the movingBody
+			foreach (Body body in bodies)
+			{
+				if (body != dragging && body.Moving)
+				{
+					foreach(Body otherBody in bodies)
+					{
+						if (otherBody != body)
+						{
+							body.VerletUpdateInitialVelocity(otherBody, dt);
+						}
+					}
+					
+					body.UpdateCoordinates(dt);
+				}
+			}
+
+			//For every movingbody that isn't being dragged, 
+			//go through all the bodies in allbodies,
+			//and update the movingBodys velocity if the body is not the movingBody
+			foreach (Body body in bodies)
+			{
+				if (body != dragging && body.Moving)
+				{
+					foreach(Body otherBody in bodies)
+					{
+						if (otherBody != body)
+						{
+							body.VerletUpdateFinalVelocity(otherBody, dt);
+						}
+						
+					}
+					
+				}
+			}
+		}
+
+		/// <summary>
+		/// An implementaion of Euler's method for integrating motion
+		/// </summary>
+		public void Euler()
+		{
+			//For every movingbody that isn't being dragged, 
+			//go through all the bodies in allbodies,
+			//and update the movingBodys velocity and coordinates if the body is not the movingBody
+			foreach (Body body in bodies)
+			{
+				if (body != dragging && body.Moving)
+				{
+					body.EulerUpdateVelocity(body, dt);
+					body.UpdateCoordinates(dt);
+
+				}
+			}
+		}
+
+		/// <summary>
+		/// Calculates the new normal velocity of a body after collision with another body
+		/// </summary>
+		/// <param name="normalVelocity1">The normal velocity to update</param>
+		/// <param name="body1">The body with the velocity to update</param>
+		/// <param name="normalVelocity2">The other bodies normal velocity</param>
+		/// <param name="body2">The other body</param>
+		/// <returns>The updated normalVelocity1</returns>
+		public double CalculateNewNormalVelocity(double normalVelocity1, Body body1, double normalVelocity2, Body body2)
+		{
+			return normalVelocity1 * (body1.Mass - body2.Mass) + 2 * body2.Mass * normalVelocity2 / body1.Mass + body2.Mass;
+		}
+		public void UpdateSelected()
+		{
+			Console.WriteLine(selectedBody);
+			if (selectedBody is Body)
+			{
+				selectedVelocityLabel.Content = "" + Math.Round(((Body)selectedBody).Velocity.Length, 2);
+			}
+
 		}
 	}
 }
