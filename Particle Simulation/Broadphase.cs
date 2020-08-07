@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Particle_Simulation
+namespace Rigid_Body_Simulation
 {
 	/// <summary>
 	/// An implementation of a broadphase for collision detection
-	/// Goes through Bodys and determines which need to be checked for collision
+	/// Goes through Bodies and determines which need to be checked for collision
 	/// </summary>
 	class Broadphase
 	{
@@ -33,16 +33,16 @@ namespace Particle_Simulation
 		{
 			//The bodies
 			List<List<Body>> bodiesToCheck = new List<List<Body>>();
-			
-			int body1Index = 0;
-			
 
-			while (body1Index < sortedBodies.Count - 1) 
+			int body1Index = 0;
+
+			//Is there a better way of doing these loops, seems messy?
+			while (body1Index < sortedBodies.Count - 1)
 			{
 				int body2Index = body1Index + 1;
 				while (body2Index < sortedBodies.Count)
 				{
-					if (TestOverlap(sortedBodies[body1Index], sortedBodies[body2Index]))
+					if (TestBoundingOverlap(sortedBodies[body1Index], sortedBodies[body2Index]))
 					{
 						bodiesToCheck.Add(new List<Body> { sortedBodies[body1Index], sortedBodies[body2Index] });
 					}
@@ -59,7 +59,7 @@ namespace Particle_Simulation
 		/// </summary>
 		/// <param name="bodies">The bodies to sort and sweep</param>
 		/// <returns>A list of lists, each containing two bodies that have colliding bounding boxes</returns>
-		public List<List<Body>> SortAndSweep(List<Body> bodies )
+		public List<List<Body>> SortAndSweep(List<Body> bodies)
 		{
 			SortBodies(bodies);
 			return SweepBodies(bodies);
@@ -74,7 +74,7 @@ namespace Particle_Simulation
 		public List<List<Body>> AddAndSweep(List<Body> sortedBodies, List<Body> bodiesToAdd)
 		{
 			AddBodies(sortedBodies, bodiesToAdd);
-			
+
 			return SweepBodies(sortedBodies);
 		}
 
@@ -83,7 +83,7 @@ namespace Particle_Simulation
 		/// </summary>
 		/// <param name="sortedBodies">The list of bodies, sorted</param>
 		/// <param name="bodiesToAdd">The bodies to add to sortedBodies</param>
-		public void AddBodies(List<Body> sortedBodies, List<Body> bodiesToAdd) 
+		public void AddBodies(List<Body> sortedBodies, List<Body> bodiesToAdd)
 		{
 			foreach (Body body in bodiesToAdd)
 			{
@@ -92,24 +92,25 @@ namespace Particle_Simulation
 				if (index >= 0)
 				{
 					sortedBodies.Insert(index, body);
-				} else
+				}
+				else
 				{
 					sortedBodies.Insert(~index, body);
 				}
-				
+
 			}
 		}
 
 		/// <summary>
-		/// 
+		/// Tests to see if the boundingCircleRadius of the body1 and body2 are overlapping
 		/// </summary>
 		/// <param name="body1">A Body</param>
 		/// <param name="body2">A Body</param>
 		/// <returns>a boolean value representing if two bodies are overlapping or not</returns>
-		public bool TestOverlap(Body body1, Body body2)
+		public bool TestBoundingOverlap(Body body1, Body body2)
 		{
 			bool overlap = false;
-			if (Math.Abs(Point.Subtract(body1.Coordinates, body2.Coordinates).Length) - body1.Radius - body2.Radius <= body1.Radius + body2.Radius)
+			if (Math.Abs(Point.Subtract(body1.Coordinates, body2.Coordinates).Length) - body1.BoundingCircleRadius - body2.BoundingCircleRadius <= 0)
 			{
 				overlap = true;
 			}

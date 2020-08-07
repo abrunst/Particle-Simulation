@@ -4,32 +4,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
-namespace Particle_Simulation
+namespace Rigid_Body_Simulation
 {
 	/// <summary>
-	/// An implementation of a Body
+	/// An implementation of a rigid Body
 	/// </summary>
 	public class Body
 	{
+
+		/// <summary>
+		/// The Color of the inside of the Body
+		/// </summary>
+		public Color FillColor { get { return ((SolidColorBrush)path.Fill).Color; } set { path.Fill = new SolidColorBrush(value); } }
+
+		/// <summary>
+		/// The color of the outline of the Body
+		/// </summary>
+		//public Color OutlineColor { get { return ((SolidColorBrush)path.Stroke).Color; } set { path.Stroke = new SolidColorBrush(Brushes.Black.Color); } }
+
 		/// <summary>
 		/// The mass of the particle
 		/// </summary>
 		private double mass;
-
-		/// <summary>
-		/// A boolean representing whether or not this Body is a moving body
-		/// </summary>
-		private bool moving;
-
-
-		public double BoundingCircleRadius { get { return Radius * 2; } }
-
-		/// <summary>
-		/// Property for moving
-		/// </summary>
-		public bool Moving { get { return moving; } }
 
 		/// <summary>
 		/// Property for the mass of the particle
@@ -37,34 +37,24 @@ namespace Particle_Simulation
 		public double Mass { get { return mass; } set { mass = value; } }
 
 		/// <summary>
-		/// Property for the radius of the Body
+		/// A boolean representing whether or not this Body is a moving body
 		/// </summary>
-		public double Radius { get { return ellipseGeometry.RadiusY; } set { ellipseGeometry.RadiusX = value; ellipseGeometry.RadiusY = value; } }
+		private bool moving;
 
 		/// <summary>
-		/// Property for the x,y coordinates of the centre of the Particleview
+		/// Property for moving
 		/// </summary>
-		public Point Coordinates { get { return ellipseGeometry.Center; } set { ellipseGeometry.Center = value; } }
+		public bool Moving { get { return moving; } set { moving = value; } }
 
 		/// <summary>
-		/// The previous coordinates of the movingBody
+		/// A boolean representing whether or not this Body is currently moving
 		/// </summary>
-		private Point previousCoordinates;
+		private bool currentlyMoving;
 
 		/// <summary>
-		/// Property for the previous coordinates of the movingBody
+		/// Property for currentlyMoving
 		/// </summary>
-		public Point PreviousCoordinates { get => previousCoordinates; set => previousCoordinates = value; }
-
-		/// <summary>
-		/// EllipseGeometry for the Body
-		/// </summary>
-		public readonly EllipseGeometry ellipseGeometry = new EllipseGeometry();
-
-		/// <summary>
-		/// The gravitational constant
-		/// </summary>
-		private const double gravitationalConstant = 6.674e-11;
+		public bool CurrentlyMoving { get { return currentlyMoving; } set { currentlyMoving = value; } }
 
 		/// <summary>
 		/// The velocity of the particle
@@ -77,41 +67,149 @@ namespace Particle_Simulation
 		public Vector Velocity { get { return velocity; } set { velocity = value; } }
 
 		/// <summary>
+		/// Property for the radius of the Body
+		/// </summary>
+		public double Radius { get { return ellipseGeometry.RadiusY; } set { ellipseGeometry.RadiusX = value; ellipseGeometry.RadiusY = value; } }
+
+		/// <summary>
+		/// A unique ID for the Body
+		/// </summary>
+		private Guid guid;
+
+		/// <summary>
+		/// Property for guid
+		/// </summary>
+		public Guid Guid { get { return guid; } }
+
+		/// <summary>
+		/// Property for the x,y coordinates of the centre of the Particleview
+		/// </summary>
+		public Point Coordinates { get { return ellipseGeometry.Center; } set { ellipseGeometry.Center = value; } }
+
+		/// <summary>
+		/// The previous 20 coordinates of the Body
+		/// </summary>
+		private Point[] previousCoordinates;
+
+		/// <summary>
+		/// Property for previousCoordinates
+		/// </summary>
+		public Point[] PreviousCoordinates { get { return previousCoordinates; } }
+
+		/// <summary>
+		/// The radius of the bounding circle
+		/// </summary>
+		public double BoundingCircleRadius { get { return Radius * 2; } }
+
+		/// <summary>
+		/// The gravitational constant
+		/// </summary>
+		private const double gravitationalConstant = 6.674e-11;
+
+
+		/// <summary>
+		/// EllipseGeometry for the Body
+		/// </summary>
+		public EllipseGeometry ellipseGeometry = new EllipseGeometry();
+
+		/// <summary>
+		/// The Trajectory of the Body
+		/// </summary>
+		public GeometryGroup trajectory = new GeometryGroup();
+
+		/// <summary>
+		/// A list of ellipseGeometries that make up a trajectory
+		/// For quick access and editing of the ellipses
+		/// </summary>
+		private EllipseGeometry[] trajectoryCircles;
+
+		/// <summary>
+		/// A list of ellipseGeometries that make up a trajectory
+		/// For quick access and editing of the ellipses
+		/// property for trajectoryCircles
+		/// </summary>
+		public EllipseGeometry[] TrajectoryCircles { set { trajectoryCircles = value; } get { return trajectoryCircles; } }
+
+		/// <summary>
+		/// The ellipse and the trajectoryCircles
+		/// </summary>
+		private GeometryGroup ellipseAndTrajectory = new GeometryGroup();
+
+		/// <summary>
+		/// The Path of the Body
+		/// </summary>
+		public Path path = new Path();
+
+		/// <summary>
+		/// The size to set previousCoordinates to
+		/// </summary>
+		int previouscoordinatesSize;
+
+		/// <summary>
+		/// The length to trajectory should be
+		/// </summary>
+		private int trajectoryLength;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="radius">Radius of the particle</param>
 		/// <param name="coordinates">Coordinates of the particle</param>
-		public Body(Point coordinates, double radius, bool moving)
+		public Body(Point coordinates, double radius, double mass, Color fillColor, bool moving, bool currentlyMoving)
 		{
 			Coordinates = coordinates;
-			PreviousCoordinates = Coordinates;
 			Radius = radius;
 			Velocity = new Vector();
-			
-		
-			Mass = 100000;
-			this.moving = moving;
-			if (moving)
-			{
-				Mass = 10000000000;
-			}
-			else
-			{
-				Mass = 100000000000;
-			}
+			this.Moving = moving;
+			this.CurrentlyMoving = currentlyMoving;
+			Mass = mass;
+			previouscoordinatesSize = 20;
+			guid = Guid.NewGuid();
+			trajectoryLength = 20;
+
+			//Colours
+			FillColor = fillColor;
+			//OutlineColor = outlineColor;
+
+			path.Data = ellipseAndTrajectory;
+
+
+
+
+
+			ellipseAndTrajectory.Children.Add(ellipseGeometry);
+
+			InitializePreviousCoordinates();
 		}
 
+
+		/// <summary>
+		/// Initializes the Previous Coordinates
+		/// </summary>
+		private void InitializePreviousCoordinates()
+		{
+			previousCoordinates = new Point[previouscoordinatesSize];
+			for (int i = 0; i < previouscoordinatesSize; i++)
+			{
+				previousCoordinates[i] = new Point(Coordinates.X, Coordinates.Y);
+			}
+		}
 
 		/// <summary>
 		/// Calculates the distance of this Body form another Body otherBody, taking into account radius
 		/// </summary>
 		/// <param name="otherBody">The other Body to calculate the distance from</param>
-		/// <returns>The distance between this Body and otherBody</returns>
+		/// <returns>The distance between this Body and otherBody in terms of coordinates</returns>
 		public double DistanceFrom(Body otherBody)
 		{
 			double distance = Point.Subtract(Coordinates, otherBody.Coordinates).Length - Radius - otherBody.Radius;
 
 			return distance;
+		}
+
+		public double DistanceFromCenter(Point point)
+		{
+			return Point.Subtract(Coordinates, point).Length;
 		}
 
 
@@ -120,11 +218,11 @@ namespace Particle_Simulation
 		/// </summary>
 		/// <param name="otherCoordinates">A Point</param>
 		/// <returns>The distance of this Body from otherCoordinates</returns>
-		public double DistanceFrom(Point otherCoordinates)
+		public Vector DistanceFrom(Point otherCoordinates)
 		{
-			double distance = Point.Subtract(Coordinates, otherCoordinates).Length;
+			Vector difference = Point.Subtract(Coordinates, otherCoordinates);
 
-			return distance;
+			return difference;
 		}
 
 
@@ -138,7 +236,7 @@ namespace Particle_Simulation
 		{
 			bool inside = false;
 
-			if (DistanceFrom(otherCoordinates) <= Radius)
+			if (DistanceFromCenter(otherCoordinates) <= Radius)
 			{
 				inside = true;
 			}
@@ -149,24 +247,50 @@ namespace Particle_Simulation
 		/// Adds the GeometryDrawing to the DrawingGroup
 		/// </summary>
 		/// <param name="drawingGroup">The group of geometry drawings</param>
-		public void AddToDrawing(GeometryGroup geometryGroup)
+		public void AddToDrawing(Canvas drawingArea)
 		{
-			geometryGroup.Children.Add(ellipseGeometry);
+			drawingArea.Children.Add(path);
+		}
+
+
+		public void InitializeTrajectory()
+		{
+			ellipseAndTrajectory.Children.Add(trajectory);
+			TrajectoryCircles = new EllipseGeometry[trajectoryLength];
+
+			for (int i = 0; i < trajectoryLength; i++)
+			{
+				EllipseGeometry ellipseGeometry = new EllipseGeometry(new Point(0, 0), 2, 2);
+				trajectory.Children.Add(ellipseGeometry);
+				trajectoryCircles[i] = ellipseGeometry;
+
+			}
 		}
 
 		/// <summary>
-		/// Updates the MovingBody's coordinates with the specificed newCoordinates
+		/// 
 		/// </summary>
-		/// <param name="newCoordinates">the new coordinates of the MovingBody</param>
-		public void UpdateCoordinates(Point newCoordinates)
+		/// <param name="points"></param>
+		public void SetTrajectory(Point[] points)
 		{
-			PreviousCoordinates = Coordinates;
-			Coordinates = newCoordinates;
+			int size = trajectoryCircles.Count();
+			for (int i = 0; i < size; i++)
+			{
+				trajectoryCircles[i].Center = points[i];
+			}
+		}
+
+		public void RemoveTrajectory()
+		{
+			ellipseAndTrajectory.Children.Remove(trajectory);
+			trajectory.Children.Clear();
+			trajectoryCircles = null;
+
 		}
 
 		/// <summary>
 		/// An implementation of Eulers method to update the position and account for lag
-		/// Error per step is ]]\]]propertional to dt squared
+		/// Error per step is propertional to dt squared
 		/// </summary>
 		/// <param name="body">The body applying force to this MovingBody</param>
 		/// <param name="dt">The change in time</param>
@@ -207,7 +331,7 @@ namespace Particle_Simulation
 		/// <returns>The force being applied to this Body from body</returns>
 		public Vector CalculateInitialForce(Body body)
 		{
-			Vector unitVector = Point.Subtract(body.PreviousCoordinates, Coordinates);
+			Vector unitVector = Point.Subtract(body.PreviousCoordinates[0], Coordinates);
 			double distance = unitVector.Length;
 			unitVector.Normalize();
 			return Vector.Multiply((gravitationalConstant * Mass * body.Mass / distance * distance), unitVector);
@@ -227,14 +351,28 @@ namespace Particle_Simulation
 			Velocity = Vector.Add(Velocity, Vector.Multiply(dt, acceleration));
 		}
 
+		public void UpdateMovingCoordinates(double dt)
+		{
+			UpdateCoordinates(Vector.Add(Vector.Multiply(Velocity, dt), Coordinates));
+		}
+
 		/// <summary>
-		/// Updates the MovingBody's coordinates
+		/// Updates the Body's coordinates
 		/// </summary>
 		/// <param name="dt">The change in time</param>
-		public void UpdateCoordinates(double dt)
+		public void UpdateCoordinates(Point newCoordinates)
 		{
-			PreviousCoordinates = Coordinates;
-			Coordinates = Vector.Add(Vector.Multiply(Velocity, dt), Coordinates);
+			Point[] newPreviousCoordinates = new Point[previousCoordinates.Length];
+
+			newPreviousCoordinates[0] = Coordinates;
+
+			for (int i = 1; i < previousCoordinates.Length; i++)
+			{
+				newPreviousCoordinates[i] = previousCoordinates[i - 1];
+			}
+
+			previousCoordinates = newPreviousCoordinates;
+			Coordinates = newCoordinates;
 		}
 
 		/// <summary>
@@ -265,11 +403,25 @@ namespace Particle_Simulation
 			Velocity = Vector.Add(Velocity, Vector.Multiply(0.5 * dt, acceleration));
 		}
 
+		/// <summary>
+		/// Returns a deep copy of the Body
+		/// </summary>
+		/// <returns>A deep copy of the Body</returns>
+		public Body DeepCopy()
+		{
+			Body body = new Body(Coordinates, Radius, Mass, FillColor, moving, currentlyMoving);
+			body.guid = guid;
+			body.Velocity = Velocity;
+			body.CurrentlyMoving = CurrentlyMoving;
+			return body;
+		}
+
 		public override String ToString()
 		{
 			return "Body: " +
 				"\n\tCoordinates: (" + Math.Round(Coordinates.X, 2) + ", " + Math.Round(Coordinates.Y, 2) + ") " +
-				"\n\tMoving: " + Moving + " " +
+				"\n\tMoving Body: " + Moving + " " +
+				"\n\tCurrently Moving: " + currentlyMoving + " " +
 				"\n\tVelocity: " + Velocity;
 		}
 	}

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Media3D;
 
-namespace Particle_Simulation
+namespace Rigid_Body_Simulation
 {
 	/// <summary>
 	/// An implmenentation of a narrowphase
@@ -30,22 +30,11 @@ namespace Particle_Simulation
 
 			foreach (List<Body> currentBodiesToCheck in bodiesToCheck)
 			{
-				/**
-				bool inAlreadyColliding = false;
-				foreach(List<Body> currrentAlreadyColliding in alreadyColliding)
-				{
-					if (!currrentAlreadyColliding.Except(currentBodiesToCheck).Any())
-					{
-						inAlreadyColliding = true;
-					}
-				}
-				**/
-
-				if ( CheckCollision(currentBodiesToCheck[0], currentBodiesToCheck[1]))
+				if (CheckCollision(currentBodiesToCheck[0], currentBodiesToCheck[1]))
 				{
 					Collision(currentBodiesToCheck[0], currentBodiesToCheck[1]);
 					alreadyColliding.Add(currentBodiesToCheck);
-					
+
 				}
 			}
 		}
@@ -105,7 +94,7 @@ namespace Particle_Simulation
 			Vector body1Velocity = new Vector();
 			Vector body2Velocity = new Vector();
 
-			if (body1.Moving && body2.Moving)
+			if (body1.CurrentlyMoving && body2.CurrentlyMoving)
 			{
 				body1Velocity = CalculateCollisionVelocity(body1, body2, unitNormalVector, unitTangentVector);
 				body2Velocity = CalculateCollisionVelocity(body2, body1, unitNormalVector, unitTangentVector);
@@ -114,19 +103,19 @@ namespace Particle_Simulation
 			}
 			else
 			{
-				if (body1.Moving)
+				if (body1.CurrentlyMoving)
 				{
 					body1Velocity = CalculateCollisionVelocity(body1, body2, unitNormalVector, unitTangentVector);
 					CorrectPositionOneBody(body1, body2);
 				}
 
-				if (body2.Moving)
+				if (body2.CurrentlyMoving)
 				{
 					body2Velocity = CalculateCollisionVelocity(body2, body1, unitNormalVector, unitTangentVector);
-					CorrectPositionTwoBody(body2, body1);
+					CorrectPositionOneBody(body2, body1);
 				}
 			}
-			
+
 
 			body1.Velocity = body1Velocity;
 			body2.Velocity = body2Velocity;
@@ -146,9 +135,9 @@ namespace Particle_Simulation
 			double tangentVelocity = Vector.Multiply(unitTangentVector, body.Velocity);
 
 			//Calculating the new normal velocity
-			double normalVelocity = (initialNormalVelocity * (body.Mass - otherBody.Mass) + 2 * otherBody.Mass * Vector.Multiply(unitNormalVector, otherBody.Velocity) ) / (body.Mass + otherBody.Mass);
+			double normalVelocity = (initialNormalVelocity * (body.Mass - otherBody.Mass) + 2 * otherBody.Mass * Vector.Multiply(unitNormalVector, otherBody.Velocity)) / (body.Mass + otherBody.Mass);
 			//Setting the velocity of the body to the new velocity after the collision
-			return normalVelocity * unitNormalVector +  tangentVelocity * unitTangentVector;
+			return normalVelocity * unitNormalVector + tangentVelocity * unitTangentVector;
 		}
 
 		/// <summary>
@@ -182,14 +171,15 @@ namespace Particle_Simulation
 		{
 			double distance = body.DistanceFrom(otherBody);
 
-			if (distance < 0) {
+			if (distance < 0)
+			{
 				Vector coordinatesCorrection = Point.Subtract(otherBody.Coordinates, body.Coordinates);
 				coordinatesCorrection.Normalize();
 				coordinatesCorrection = coordinatesCorrection * (distance / 2);
 				body.Coordinates = Point.Add(body.Coordinates, coordinatesCorrection);
 				otherBody.Coordinates = Point.Subtract(otherBody.Coordinates, coordinatesCorrection);
-				
-				
+
+
 			}
 
 		}
@@ -202,7 +192,7 @@ namespace Particle_Simulation
 		public void CorrectPositionOneBody(Body body, Body otherBody)
 		{
 			double distance = body.DistanceFrom(otherBody);
-			
+
 			if (distance < 0)
 			{
 				Vector coordinatesCorrection = Point.Subtract(otherBody.Coordinates, body.Coordinates);

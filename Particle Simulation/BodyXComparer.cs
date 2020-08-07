@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Particle_Simulation
+namespace Rigid_Body_Simulation
 {
 	/// <summary>
 	/// A class for comparing the x values of the bottom left of the bounds of Bodys
@@ -23,10 +23,12 @@ namespace Particle_Simulation
 			if (x.ellipseGeometry.Bounds.BottomLeft.X > y.ellipseGeometry.Bounds.BottomLeft.X)
 			{
 				result = 1;
-			} else if (x.ellipseGeometry.Bounds.BottomLeft.X < y.ellipseGeometry.Bounds.BottomLeft.X)
+			}
+			else if (x.ellipseGeometry.Bounds.BottomLeft.X < y.ellipseGeometry.Bounds.BottomLeft.X)
 			{
 				result = -1;
-			} else
+			}
+			else
 			{
 				result = 0;
 			}

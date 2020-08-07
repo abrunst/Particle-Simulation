@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Particle_Simulation.Properties
+namespace Rigid_Body_Simulation.Properties
 {
 
 

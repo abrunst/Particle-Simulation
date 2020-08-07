@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Particle_Simulation
+namespace Rigid_Body_Simulation
 {
     public static class LinqExtras // Or whatever
     {
