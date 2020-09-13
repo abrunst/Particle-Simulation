@@ -11,3 +11,7 @@ A WPF application that simulates gravity between bodies
 - Collision
 - Trajectory
 
+## How To Use
+- The "Home" tab contains all the options
+- The "On Click" section of the Home tab contains the options for what occurs when a click is registered.  Such as creating a static or moving body.
+
