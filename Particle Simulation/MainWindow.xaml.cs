@@ -271,7 +271,7 @@ namespace Rigid_Body_Simulation
 		/// <param name="e">The mouse event that triggered the handler</param>
 		private void DrawingArea_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			if (onClickComboBox.SelectedValue.ToString() == "Select")
+			if (onClickListBox.SelectedValue.ToString() == "Select")
 			{
 				foreach (Body body in bodies)
 				{
@@ -287,14 +287,14 @@ namespace Rigid_Body_Simulation
 				}
 
 			}
-			else if (onClickComboBox.SelectedValue.ToString() == "Create Static Body")
+			else if (onClickListBox.SelectedValue.ToString() == "Create Static Body")
 			{
 				double radius = (double)staticBodyRadiusIUD.Value;
 				Point coordinates = e.GetPosition(drawingArea);
 
 				AddBody(radius, coordinates);
 			}
-			else if (onClickComboBox.SelectedValue.ToString() == "Create Moving Body")
+			else if (onClickListBox.SelectedValue.ToString() == "Create Moving Body")
 			{
 				double radius = (double)movingBodyRadiusIUD.Value;
 				Point coordinates = e.GetPosition(drawingArea);
@@ -311,7 +311,7 @@ namespace Rigid_Body_Simulation
 
 
 			}
-			else if (onClickComboBox.SelectedValue.ToString() == "Drag Body" && dragging is null)
+			else if (onClickListBox.SelectedValue.ToString() == "Drag Body" && dragging is null)
 			{
 				foreach (Body body in bodies)
 				{

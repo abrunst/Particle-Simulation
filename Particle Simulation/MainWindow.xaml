@@ -8,40 +8,40 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="625" Width="1042.75" Background="White" Foreground="Black">
     <Grid>
-        <TabControl TabStripPlacement="Bottom" HorizontalContentAlignment="Center" VerticalAlignment="Top" Height="152" Panel.ZIndex="5">
+        <TabControl TabStripPlacement="Bottom" HorizontalContentAlignment="Center" VerticalAlignment="Top" Height="174" Panel.ZIndex="5">
             <TabItem Header="Home">
                 <Grid Background="#FFE5E5E5" Margin="-2,0,0,-2">
-                    <GroupBox Header="Click Options" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="122" Margin="0,-2,0,0">
+                    <GroupBox Header="Click Options" HorizontalAlignment="Left" Height="148" VerticalAlignment="Top" Width="152" Margin="0,-2,0,0">
                         <Grid HorizontalAlignment="Left" Height="105" VerticalAlignment="Top" Width="169" Margin="0,0,-2,-1">
                             <Label Content="On Click:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25"/>
-                            <ComboBox x:Name="onClickComboBox" SelectedValuePath="Content" HorizontalAlignment="Left" Height="23" Margin="0,25,0,0" VerticalAlignment="Top" Width="89">
-                                <ComboBoxItem IsSelected="True">Select</ComboBoxItem>
-                                <ComboBoxItem>Create Static Body</ComboBoxItem>
-                                <ComboBoxItem>Create Moving Body</ComboBoxItem>
-                                <ComboBoxItem>Drag Body</ComboBoxItem>
-                            </ComboBox>
+                            <ListBox Name="onClickListBox" SelectedValuePath="Content" HorizontalAlignment="Left" Height="97" Margin="0,25,0,-17" VerticalAlignment="Top" Width="131">
+                                <ListBoxItem IsSelected="True">Select</ListBoxItem>
+                                <ListBoxItem>Create Static Body</ListBoxItem>
+                                <ListBoxItem>Create Moving Body</ListBoxItem>
+                                <ListBoxItem>Drag Body</ListBoxItem>
+                            </ListBox>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Static Body Options" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="224" Margin="127,0,0,0">
+                    <GroupBox Header="Static Body Options" HorizontalAlignment="Left" Height="148" VerticalAlignment="Top" Width="224" Margin="157,-2,0,0">
                         <Grid HorizontalAlignment="Left" Height="105" VerticalAlignment="Top" Width="236" Margin="0,0,-2,-2">
                             <Label Content="Radius:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25"/>
                             <xctk:IntegerUpDown x:Name="staticBodyRadiusIUD" Canvas.Left="121" Canvas.Top="60" Margin="0,25,151,55" Value="30"/>
-                            <Label Content="Static Body Colour:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Margin="0,50,0,0" Width="112"/>
-                            <xctk:ColorPicker x:Name="bodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="0,75,151,5" SelectedColor="LimeGreen"/>
+                            <Label Content="Static Body Colour:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Margin="0,58,0,0" Width="112"/>
+                            <xctk:ColorPicker x:Name="bodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="0,88,151,-8" SelectedColor="LimeGreen"/>
                             <Label Content="Mass:" Margin="117,0,79,80"/>
                             <xctk:DoubleUpDown x:Name="staticBodyMassDUD" Margin="117,25,34,55" Value="100000000000"/>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Misc Options" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="213" Margin="580,0,0,-2">
+                    <GroupBox Header="Misc Options" HorizontalAlignment="Left" Height="146" VerticalAlignment="Top" Width="213" Margin="610,0,0,0">
                         <Grid HorizontalAlignment="Left" Height="104" Margin="0,0,-12,0" VerticalAlignment="Top" Width="179">
                             <Button x:Name="clearButton" Content="Clear Bodies" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="ClearButton_Click"/>
-                            <Label Margin="10,30,56,49">Movement Method</Label>
-                            <ComboBox x:Name="movementMethodComboBox" SelectedValuePath="Content" Margin="10,55,82,28">
+                            <Label Margin="10,35,56,44">Movement Method</Label>
+                            <ComboBox x:Name="movementMethodComboBox" SelectedValuePath="Content" Margin="10,65,56,18">
                                 <ComboBoxItem IsSelected="True">Velocity Verlet</ComboBoxItem>
                                 <ComboBoxItem>Euler</ComboBoxItem>
                             </ComboBox>
-                            <Label Content="Collision:" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" RenderTransformOrigin="-1.579,0.769"/>
-                            <CheckBox x:Name="collisionCheckbox" Margin="68,83,94,0" IsChecked="true"></CheckBox>
+                            <Label Content="Collision:" HorizontalAlignment="Left" Margin="10,94,0,-16" VerticalAlignment="Top" RenderTransformOrigin="-1.579,0.769"/>
+                            <CheckBox x:Name="collisionCheckbox" Margin="68,99,94,-16" IsChecked="true"></CheckBox>
                             <Label Content="Edit Body:" HorizontalAlignment="Left" Margin="123,4,-6,0" VerticalAlignment="Top" RenderTransformOrigin="-1.579,0.769" Width="62"/>
                             <CheckBox x:Name="EditBodyCheckbox" Margin="184,10,-22,73" IsChecked="true" RenderTransformOrigin="0.5,0.5">
                                 <CheckBox.RenderTransform>
@@ -55,12 +55,12 @@
                             </CheckBox>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Moving Body Options" HorizontalAlignment="Left" Height="124" VerticalAlignment="Top" Width="219" Margin="356,0,0,-2">
+                    <GroupBox Header="Moving Body Options" HorizontalAlignment="Left" Height="146" VerticalAlignment="Top" Width="219" Margin="386,0,0,0">
                         <Grid HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="236" Margin="0,0,-2,-23">
                             <Label Content="Radius:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25"/>
                             <xctk:IntegerUpDown x:Name="movingBodyRadiusIUD" Canvas.Left="121" Canvas.Top="60" Margin="0,25,155,79" Value="10"/>
-                            <Label Content="Moving Body Colour:" HorizontalAlignment="Left" Margin="0,47,0,0" VerticalAlignment="Top"/>
-                            <xctk:ColorPicker x:Name="movingBodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="0,73,155,31" SelectedColor="SlateBlue"/>
+                            <Label Content="Moving Body Colour:" HorizontalAlignment="Left" Margin="0,54,0,0" VerticalAlignment="Top"/>
+                            <xctk:ColorPicker x:Name="movingBodyColorPicker" Canvas.Left="190" Canvas.Top="60" Margin="0,85,155,19" SelectedColor="SlateBlue"/>
                             <Label Content="Radius:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Margin="124,0,0,0"/>
                             <xctk:DoubleUpDown x:Name="movingBodyMassDUD" Margin="124,25,31,79" Value="10000000000"/>
                         </Grid>
@@ -82,7 +82,6 @@
         </TabControl>
         <Canvas x:Name="drawingArea" Margin="0,154,0,0" Background="White" MouseLeftButtonDown="DrawingArea_MouseLeftButtonDown" MouseLeftButtonUp="DrawingArea_MouseLeftButtonUp">
         </Canvas>
-        <TextBox HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
     </Grid>
 </Window>
