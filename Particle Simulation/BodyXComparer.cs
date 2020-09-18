@@ -7,24 +7,24 @@ using System.Threading.Tasks;
 namespace Rigid_Body_Simulation
 {
 	/// <summary>
-	/// A class for comparing the x values of the bottom left of the bounds of Bodys
+	/// A class for comparing Bodys
 	/// </summary>
 	class BodyXComparer : IComparer<Body>
 	{
 		/// <summary>
-		/// 
+		/// Compares the x coordinates of two Bodys
 		/// </summary>
-		/// <param name="x">A Body</param>
-		/// <param name="y">A Body</param>
+		/// <param name="body1">A Body</param>
+		/// <param name="body2">A Body</param>
 		/// <returns></returns>
-		public int Compare(Body x, Body y)
+		public int Compare(Body body1, Body body2)
 		{
 			int result;
-			if (x.ellipseGeometry.Bounds.BottomLeft.X > y.ellipseGeometry.Bounds.BottomLeft.X)
+			if (body1.ellipseGeometry.Bounds.BottomLeft.X > body2.ellipseGeometry.Bounds.BottomLeft.X)
 			{
 				result = 1;
 			}
-			else if (x.ellipseGeometry.Bounds.BottomLeft.X < y.ellipseGeometry.Bounds.BottomLeft.X)
+			else if (body1.ellipseGeometry.Bounds.BottomLeft.X < body2.ellipseGeometry.Bounds.BottomLeft.X)
 			{
 				result = -1;
 			}
